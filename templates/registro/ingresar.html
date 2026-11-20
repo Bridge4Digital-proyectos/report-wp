@@ -1,0 +1,27 @@
+{% extends "base.html" %}{% load static %}
+{% block pagina %}
+<div class="ingreso-pagina">
+  <section class="ingreso-hero">
+    <img src="{% static 'nucleo/marca/logo_horizontal.png' %}" alt="Bridge4 Digital" width="210" height="33">
+    <span class="rotulo">Reportes de difusiones · WhatsApp</span>
+    <h1>Mide, entiende y reporta tus campañas <em>en un solo lugar</em></h1>
+    <p>Entregas, lecturas, respuestas de clientes y reportes listos para compartir.</p>
+  </section>
+  <section class="ingreso-lado">
+    <div class="ingreso">
+      <span class="rotulo">Bienvenido</span>
+      <h2>Ingresa con tu usuario</h2>
+      {% if form.errors %}<div class="aviso error">Usuario o contraseña incorrectos.</div>{% endif %}
+      <form method="post">
+        {% csrf_token %}
+        <label for="id_username">Usuario</label>
+        <input type="text" name="username" id="id_username" autocomplete="username" autofocus required>
+        <label for="id_password">Contraseña</label>
+        <input type="password" name="password" id="id_password" autocomplete="current-password" required>
+        <input type="hidden" name="next" value="{{ next }}">
+        <button class="boton primario" type="submit">Ingresar</button>
+      </form>
+    </div>
+  </section>
+</div>
+{% endblock %}

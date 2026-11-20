@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block contenido %}
+{% include "nucleo/_pestanas_campanas.html" %}
+{% if not empresas %}
+  <div class="aviso">Todavía no hay campañas.</div>
+{% else %}
+<form method="get" class="tarjeta">
+  <div class="campos">
+    <div>
+      <label for="c-empresa">Empresa</label>
+      <select id="c-empresa" name="empresa" data-auto>{% for e in empresas %}<option {% if e == empresa %}selected{% endif %}>{{ e }}</option>{% endfor %}</select>
+    </div>
+  </div>
+  <details class="desplegable" {% if meses %}open{% endif %}>
+    <summary>Filtrar por mes{% if meses %} ({{ meses|length }}){% endif %}</summary>
+    <div class="chequeos">{% for m in opciones_mes %}<label><input type="checkbox" name="mes" value="{{ m }}" {% if m in meses %}checked{% endif %}> {{ m }}</label>{% endfor %}</div>
+    <div class="acciones"><button class="boton" type="submit">Aplicar</button></div>
+  </details>
+</form>
+
+<p class="suave">Corrige la categoría Meta, quién solicitó la difusión y cuándo. Cada fila es un envío (lote o prueba); la campaña toma los datos de su lote.</p>
+<form method="post">
+  {% csrf_token %}
+  <div class="tabla-caja alta">
+    <table class="tabla" aria-label="Envíos de campañas">
+      <thead><tr><th>Campaña (envío)</th><th>Categoría Meta</th><th>Solicitado por</th><th>Fecha de solicitud</th><th class="num">Mensajes</th><th>Primer envío</th></tr></thead>
+      <tbody>
+      {% for f in filas %}
+        <tr>
+          <td>{{ f.campana }}<input type="hidden" name="id" value="{{ f.id }}"></td>
+          <td><select name="cat_{{ f.id }}" aria-label="Categoría de {{ f.campana }}">{% for c in categorias %}<option {% if c == f.categoria %}selected{% endif %}>{{ c }}</option>{% endfor %}</select></td>
+          <td><input type="text" name="quien_{{ f.id }}" value="{{ f.solicitado_por|default:'' }}" aria-label="Solicitado por" list="solicitantes"></td>
+          <td><input type="date" name="fecha_{{ f.id }}" value="{{ f.fecha_solicitud }}" aria-label="Fecha de solicitud"></td>
+          <td class="num">{{ f.mensajes }}</td>
+          <td>{{ f.primer_envio|date:"Y-m-d H:i"|default:"—" }}</td>
+        </tr>
+      {% empty %}<tr><td colspan="6">Ningún envío coincide con el filtro.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="acciones"><button class="boton primario" type="submit">Guardar cambios</button></div>
+</form>
+{% endif %}
+{% endblock %}

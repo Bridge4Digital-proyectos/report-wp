@@ -1,0 +1,48 @@
+{% extends "base.html" %}{% load humanize %}
+{% block cabeza %}{% if alguna_en_curso %}<meta http-equiv="refresh" content="15">{% endif %}{% endblock %}
+{% block contenido %}
+<div class="encabezado">
+  <span class="rotulo">Integración · API</span>
+  <h1>Sincronización con <em>Connectly</em></h1>
+  <p class="suave">Los reportes de Connectly se traen solos una vez al día por la API. También puedes sincronizar ahora o, si hace falta, <a href="{% url 'connectly:cargar' %}">subir un CSV a mano</a>.</p>
+</div>
+
+{% if not cuentas %}
+  <div class="aviso advertencia">Todavía no hay cuentas de Connectly. {% if user.is_staff %}Agrégala en <a href="{% url 'admin:connectly_cuentaconnectly_add' %}">Admin → Cuentas de Connectly</a> con el Business ID y el nombre de la variable de la API key del archivo .env.{% else %}Pide a un administrador que la registre.{% endif %}</div>
+{% else %}
+  <div class="grilla-2">
+  {% for f in cuentas %}
+    <section class="tarjeta">
+      <h3>{{ f.cuenta.empresa }}</h3>
+      <p class="suave">Reporte «{{ f.cuenta.nombre_reporte|default:"cualquiera" }}» ({{ f.cuenta.tipo_reporte|default:"cualquier tipo" }}) ·
+        {% if f.cuenta.activa %}sincronización diaria activa{% else %}<strong>sincronización diaria apagada</strong>{% endif %}</p>
+      {% if not f.cuenta.tiene_clave %}<div class="aviso error">Falta la API key: agrega <code>{{ f.cuenta.variable_api_key }}=…</code> en el archivo .env y reinicia la app.</div>{% endif %}
+      {% if f.ultima %}
+        <p>Última sincronización: {{ f.ultima.inicio|date:"Y-m-d H:i" }} <span class="chip {{ f.ultima.estado }}">{{ f.ultima.get_estado_display }}</span><br>
+        <span class="suave">{{ f.ultima.detalle }}</span></p>
+      {% else %}<p class="suave">Todavía no se sincronizó.</p>{% endif %}
+      {% if f.ultima_ok %}<p class="suave">Último reporte importado: {{ f.ultima_ok.reporte_creado|date:"Y-m-d H:i"|default:"—" }} ({{ f.ultima_ok.nuevos|intcomma }} nuevos, {{ f.ultima_ok.actualizados|intcomma }} actualizados)</p>{% endif %}
+      <form method="post" action="{% url 'connectly:sincronizar' %}">
+        {% csrf_token %}<input type="hidden" name="cuenta" value="{{ f.cuenta.id }}">
+        {% if f.en_curso %}<button class="boton" type="button" disabled>Sincronizando… (se actualiza sola)</button>
+        {% else %}<button class="boton primario" type="submit" {% if not f.cuenta.tiene_clave %}disabled{% endif %}>Sincronizar ahora</button>{% endif %}
+      </form>
+    </section>
+  {% endfor %}
+  </div>
+{% endif %}
+
+<h2>Registro de sincronizaciones</h2>
+<div class="tabla-caja alta">
+  <table class="tabla" aria-label="Registro de sincronizaciones">
+    <thead><tr><th>Inicio</th><th>Empresa</th><th>Tipo</th><th>Estado</th><th class="num">Nuevos</th><th class="num">Actualizados</th><th>Detalle</th></tr></thead>
+    <tbody>
+    {% for s in registro %}
+      <tr><td>{{ s.inicio|date:"Y-m-d H:i" }}</td><td>{{ s.cuenta.empresa }}</td><td>{{ s.origen }}</td>
+        <td><span class="chip {{ s.estado }}">{{ s.get_estado_display }}</span></td>
+        <td class="num">{{ s.nuevos|intcomma }}</td><td class="num">{{ s.actualizados|intcomma }}</td><td class="ancha">{{ s.detalle }}</td></tr>
+    {% empty %}<tr><td colspan="7">Sin sincronizaciones todavía.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

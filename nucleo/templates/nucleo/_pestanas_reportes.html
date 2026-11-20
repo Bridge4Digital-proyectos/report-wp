@@ -1,0 +1,14 @@
+<div class="encabezado">
+  <span class="rotulo">Reportes{% if empresa %} · {{ empresa }}{% endif %}</span>
+  {% if pestana_reportes == "html" %}
+  <h1>Reporte <em>HTML</em> para compartir</h1>
+  <p class="suave">Un reporte de UNA campaña con la marca Bridge4 Digital, que se abre en cualquier navegador sin conexión y se puede imprimir como PDF.</p>
+  {% else %}
+  <h1>Informe de <em>campañas</em></h1>
+  <p class="suave">Arma el informe de una o varias campañas y descárgalo en Excel o PDF.</p>
+  {% endif %}
+</div>
+<nav class="pestanas" aria-label="Tipos de reporte">
+  <a href="{% url 'informe' %}" class="{% if pestana_reportes != 'html' %}activa{% endif %}">Informe (Excel / PDF)</a>
+  <a href="{% url 'generador:inicio' %}" class="{% if pestana_reportes == 'html' %}activa{% endif %}">Reporte HTML</a>
+</nav>

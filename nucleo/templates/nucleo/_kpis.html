@@ -1,0 +1,9 @@
+<div class="grilla-kpi">
+  {% for k in kpis %}
+  <div class="kpi">
+    <div class="nombre">{{ k.nombre }}</div>
+    <div class="valor">{{ k.valor }}</div>
+    {% if k.pct %}<span class="pct" title="Porcentaje del total de mensajes">{{ k.pct }}</span>{% endif %}
+  </div>
+  {% endfor %}
+</div>

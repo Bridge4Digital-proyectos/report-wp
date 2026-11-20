@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block contenido %}
+<div class="encabezado">
+  <span class="rotulo">Carga manual · {{ plataforma }}</span>
+  <h1>Cargar reporte de <em>{{ plataforma }}</em></h1>
+  <p class="suave">{{ ayuda }}</p>
+</div>
+
+{% if not sesion %}
+<form method="post" enctype="multipart/form-data" class="tarjeta">
+  {% csrf_token %}
+  <div class="campos">
+    <div>
+      <label for="u-empresa">Empresa</label>
+      <select id="u-empresa" name="empresa" onchange="document.getElementById('u-nueva').hidden = this.value !== '{{ NUEVA }}'">
+        {% for e in empresas %}<option value="{{ e.id }}" {% if e.nombre == request.session.empresa %}selected{% endif %}>{{ e.nombre }}</option>{% endfor %}
+        <option value="{{ NUEVA }}" {% if not empresas %}selected{% endif %}>+ Nueva empresa</option>
+      </select>
+    </div>
+    <div id="u-nueva" {% if empresas %}hidden{% endif %}>
+      <label for="u-nombre">Nombre de la nueva empresa</label>
+      <input id="u-nombre" type="text" name="empresa_nueva">
+    </div>
+    <div style="flex:2 1 280px">
+      <label for="u-archivo">Archivo del reporte</label>
+      <input id="u-archivo" type="file" name="archivo" accept="{{ extensiones }}" required>
+    </div>
+  </div>
+  <div class="acciones"><button class="boton primario" type="submit" name="accion" value="subir" data-espera="Leyendo archivo…">Revisar archivo</button></div>
+</form>
+{% else %}
+<form method="post">
+  {% csrf_token %}
+  <div class="tarjeta">
+    <strong>{{ sesion.nombre }}</strong> → <strong>{% if empresa_obj %}{{ empresa_obj }}{% else %}{{ sesion.nueva }} (nueva){% endif %}</strong>
+  </div>
+
+  <h2>Campañas del archivo</h2>
+  <p class="suave">Desmarca las campañas que no quieras cargar. Si cambias el nombre de una campaña, se cambia en todos sus envíos (lote y pruebas), que conservan su final: «. Lote 001», «. Prueba 003»…</p>
+  <div class="tabla-caja">
+    <table class="tabla" aria-label="Campañas del archivo">
+      <thead><tr><th>Cargar</th><th>Campaña</th><th class="num">Lotes y pruebas</th><th class="num">Mensajes</th></tr></thead>
+      <tbody>
+      {% for c in campanas_archivo %}
+        <tr><td><input type="checkbox" name="incluir_{{ c.i }}" value="1" {% if c.incluir %}checked{% endif %} aria-label="Cargar {{ c.original }}"></td>
+          <td><input type="text" name="nombre_{{ c.i }}" value="{{ c.nombre }}" aria-label="Nombre de la campaña"></td>
+          <td class="num">{{ c.envios }}</td><td class="num">{{ c.mensajes }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="acciones"><button class="boton" type="submit" name="accion" value="revisar">Actualizar vista previa</button></div>
+
+  {% if bloques %}
+    {% if sin_novedad %}
+      <div class="aviso">Este reporte ya estaba guardado y no trae ningún cambio{% if ultima %} (última carga: {{ ultima|date:"Y-m-d H:i" }}){% endif %}. No hace falta cargarlo.</div>
+    {% elif comparacion %}
+      <div class="aviso advertencia">Parte de este reporte ya estaba guardado. Al guardar se agregan los mensajes nuevos y se actualizan los que cambiaron (más lecturas, respuestas, etc.). Nada de lo guardado se borra.</div>
+      {% with t=comparacion alt="Cambios frente a lo ya guardado" %}{% include "nucleo/_tabla.html" %}{% endwith %}
+    {% endif %}
+
+    <h2>Vista previa</h2>
+    {% include "nucleo/_kpis.html" with kpis=previa %}
+
+    <h2>Datos de cada campaña</h2>
+    <p class="suave">Se aplican a todos los envíos de la campaña (lote y pruebas).</p>
+    <datalist id="solicitantes">{% for s in solicitantes %}<option value="{{ s }}">{% endfor %}</datalist>
+    <div class="pila">
+    {% for b in bloques %}
+      <div class="tarjeta">
+        <strong>{{ b.campana }}</strong> <span class="suave">· {{ b.envios }} envío(s) · {{ b.mensajes }} mensajes{% if b.existia %} · ya existía{% endif %}</span>
+        <div class="campos" style="margin-top:8px">
+          <div><label>Categoría Meta</label><select name="cat_{{ b.j }}">{% for c in categorias %}<option {% if c == b.categoria %}selected{% endif %}>{{ c }}</option>{% endfor %}</select></div>
+          <div><label>Solicitado por</label><input type="text" name="quien_{{ b.j }}" value="{{ b.quien }}" list="solicitantes" placeholder="Escribe o elige un nombre"></div>
+          <div><label>Fecha de solicitud</label><input type="date" name="fecha_{{ b.j }}" value="{{ b.fecha }}"></div>
+        </div>
+      </div>
+    {% endfor %}
+    </div>
+  {% endif %}
+  <div class="acciones">
+    {% if bloques and not sin_novedad %}<button class="boton primario" type="submit" name="accion" value="guardar" data-espera="Guardando…">{{ texto_guardar }}</button>{% endif %}
+    <button class="boton" type="submit" name="accion" value="cancelar" formnovalidate>Cancelar</button>
+  </div>
+</form>
+{% endif %}
+{% endblock %}

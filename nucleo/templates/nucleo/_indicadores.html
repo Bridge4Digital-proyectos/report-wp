@@ -1,0 +1,131 @@
+{# Indicadores clave, horario de entrega, mapa de lectura, calidad de la base, satisfacción y costo. Recibe `ind`. #}
+<section aria-labelledby="t-ind-{{ alcance }}">
+  <h2 id="t-ind-{{ alcance }}">Indicadores clave</h2>
+  <p class="suave">La <strong>efectividad de gestión</strong> es la parte de la base a la que se le <strong>envió</strong> el mensaje: mensajes enviados / mensajes de la base. Las respuestas de los clientes se miden aparte, en la tasa de respuesta.</p>
+  <div class="grilla-kpi">
+    {% for k in ind.ind_tarjetas %}
+    <div class="kpi{% if k.destacado %} destacado{% endif %}">
+      <div class="nombre">{{ k.nombre }}</div>
+      <div class="valor">{{ k.valor }}</div>
+      <div class="nota">{{ k.nota }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<div class="grilla-2">
+  {% for g in ind.ind_graficos %}{% include "nucleo/_tarjeta.html" %}{% endfor %}
+</div>
+
+<div class="grilla-2">
+  <section class="tarjeta" aria-labelledby="t-cal-{{ alcance }}">
+    <h3 id="t-cal-{{ alcance }}">Calidad de la base</h3>
+    <p class="suave">{{ ind.ind_calidad.pct_problemas }} de los mensajes tuvieron un problema de base · {{ ind.ind_calidad.contactos_validos }} contactos válidos.</p>
+    <div class="barras-app">
+      {% for f in ind.ind_calidad.filas %}
+      <div class="barra-app{% if f.clave != 'repetidos' %} rojo{% endif %}">
+        <span class="e">{{ f.etiqueta }}</span>
+        <span class="pista"><span class="relleno" style="width:{{ f.ancho }}%"></span></span>
+        <span class="c">{{ f.n_txt }} <small>· {{ f.pct_txt }}</small></span>
+      </div>
+      {% endfor %}
+    </div>
+    <p class="explicacion">Limpiar estos números antes del próximo envío baja costos y cuida la calidad de la cuenta de WhatsApp ante Meta.</p>
+    <div class="acciones">
+      {% if ind.ind_calidad.hay_repetidos %}
+        <a class="boton primario" href="{{ ind.url_repetidos }}" data-espera="Preparando Excel…">Descargar números repetidos ({{ ind.ind_calidad.numeros_repetidos }})</a>
+      {% else %}<span class="chip ok">Sin números repetidos</span>{% endif %}
+    </div>
+  </section>
+
+  <div class="pila">
+    {% if ind.ind_satisfaccion %}
+    <section class="tarjeta" aria-labelledby="t-sat-{{ alcance }}">
+      <h3 id="t-sat-{{ alcance }}">Satisfacción</h3>
+      <div class="grilla-kpi" style="margin:6px 0 0">
+        {% if ind.ind_satisfaccion.csat %}
+        <div class="kpi"><div class="nombre">CSAT (4–5 ★)</div><div class="valor">{{ ind.ind_satisfaccion.csat }}</div><div class="nota">promedio {{ ind.ind_satisfaccion.promedio }} de 5 · {{ ind.ind_satisfaccion.calificaron }} calificaron</div></div>
+        {% endif %}
+        {% if ind.ind_satisfaccion.neto %}
+        <div class="kpi"><div class="nombre">Sentimiento neto</div><div class="valor">{{ ind.ind_satisfaccion.neto }}</div><div class="nota">{{ ind.ind_satisfaccion.positivas }} positivas · {{ ind.ind_satisfaccion.negativas }} negativas</div></div>
+        {% endif %}
+      </div>
+      <p class="explicacion">CSAT = % de clientes que calificaron con 4 o 5. Sentimiento neto = % de respuestas positivas menos % de negativas.</p>
+    </section>
+    {% endif %}
+
+    {% if ind.ind_costo %}
+    <section class="tarjeta" aria-labelledby="t-costo-{{ alcance }}">
+      <h3 id="t-costo-{{ alcance }}">Ingresos de Bridge4{% if alcance == "campana" %} · esta campaña{% endif %}</h3>
+      {% if ind.ind_costo.disponible %}
+        <div class="grilla-kpi" style="margin:6px 0 0">
+          <div class="kpi"><div class="nombre">Ingreso</div><div class="valor">{{ ind.ind_costo.total_txt }}</div><div class="nota">mensajes entregados × precio</div></div>
+          <div class="kpi"><div class="nombre">Por respuesta</div><div class="valor">{{ ind.ind_costo.por_respuesta_txt }}</div><div class="nota">por mensaje entregado: {{ ind.ind_costo.por_entregado_txt }}</div></div>
+        </div>
+        <p class="explicacion">Con los <a href="{{ ind.url_tarifas }}">precios de la empresa</a>. Uso interno: en los reportes que recibe la empresa, este monto es su costo.</p>
+      {% else %}
+        <div class="aviso advertencia">Falta el precio de {{ ind.ind_costo.faltan|join:", " }}. <a href="{{ ind.url_tarifas }}">Configúralo aquí</a> para ver los ingresos.</div>
+      {% endif %}
+    </section>
+    {% endif %}
+  </div>
+</div>
+
+{% if ind.ind_ingresos %}{% with c=ind.ind_ingresos %}
+<section class="tarjeta costos" aria-labelledby="t-ing-{{ alcance }}" style="margin-top:18px">
+  <div class="cabecera-campana" style="background:none">
+    <div>
+      <span class="rotulo">Ingresos de Bridge4 · uso interno</span>
+      <h2 id="t-ing-{{ alcance }}" style="margin:0">Ingresos de las {{ c.campanas_n }} <em>campañas</em></h2>
+      <p class="suave" style="margin:.3rem 0 0">Con los filtros de arriba. Ingreso = mensajes entregados × precio de la categoría para esta empresa.</p>
+    </div>
+    <a class="boton" href="{{ ind.url_ingresos }}" data-espera="Preparando Excel…">Descargar ingresos (Excel)</a>
+  </div>
+
+  <div class="grilla-kpi">
+    <div class="kpi destacado"><div class="nombre">Ingreso total</div><div class="valor">{{ c.total }}</div><div class="nota">{{ c.campanas_n }} campañas</div></div>
+    <div class="kpi"><div class="nombre">Promedio por mes</div><div class="valor">{{ c.promedio_mes }}</div><div class="nota">meses del periodo filtrado</div></div>
+    <div class="kpi"><div class="nombre">Promedio por campaña</div><div class="valor">{{ c.promedio_campana }}</div><div class="nota">ingreso total / campañas</div></div>
+    <div class="kpi"><div class="nombre">Por mensaje entregado</div><div class="valor">{{ c.por_entregado }}</div><div class="nota">promedio de todas las categorías</div></div>
+  </div>
+
+  <div class="grilla-2">
+    <div>
+      <h3>Por categoría</h3>
+      <div class="tabla-caja">
+        <table class="tabla" aria-label="Ingresos por categoría">
+          <thead><tr><th>Categoría</th><th class="num">Precio</th><th class="num">Entregados</th><th class="num">Ingreso ({{ c.moneda }})</th><th class="num">% del ingreso</th></tr></thead>
+          <tbody>{% for f in c.por_categoria %}<tr><td>{{ f.nombre }}</td><td class="num">{{ f.tarifa }}</td><td class="num">{{ f.entregados }}</td><td class="num">{{ f.monto }}</td><td class="num">{{ f.pct }}</td></tr>{% endfor %}</tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <h3>Por mes</h3>
+      <div class="tabla-caja">
+        <table class="tabla" aria-label="Ingresos por mes">
+          <thead><tr><th>Mes</th><th class="num">Entregados</th><th class="num">Ingreso ({{ c.moneda }})</th><th class="num">% del ingreso</th><th class="num">Por respuesta</th></tr></thead>
+          <tbody>{% for f in c.por_mes %}<tr><td>{{ f.nombre }}</td><td class="num">{{ f.entregados }}</td><td class="num">{{ f.monto }}</td><td class="num">{{ f.pct }}</td><td class="num">{{ f.por_respuesta }}</td></tr>{% endfor %}</tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <h3>Por campaña</h3>
+  <p class="suave">Ordenadas de mayor a menor ingreso. Haz clic en una campaña para ver su detalle.</p>
+  <div class="tabla-caja alta">
+    <table class="tabla" aria-label="Ingresos por campaña">
+      <thead><tr><th>Campaña</th><th>Categoría</th><th>Primer envío</th><th class="num">Entregados</th><th class="num">Respondieron</th><th>Ingreso ({{ c.moneda }})</th><th class="num">Por entregado</th><th class="num">Por respuesta</th></tr></thead>
+      <tbody>
+      {% for f in c.por_campana %}
+        <tr data-url="{{ f.url }}">
+          <td class="ancha">{{ f.campana }}</td><td>{{ f.categoria }}</td><td>{{ f.inicio }}</td>
+          <td class="num">{{ f.entregados }}</td><td class="num">{{ f.respondieron }}</td>
+          <td><div class="costo-celda"><span class="num">{{ f.monto }}</span><span class="pista"><span class="relleno" style="width:{{ f.ancho }}%"></span></span><small>{{ f.pct }}</small></div></td>
+          <td class="num">{{ f.por_entregado }}</td><td class="num">{{ f.por_respuesta }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endwith %}{% endif %}

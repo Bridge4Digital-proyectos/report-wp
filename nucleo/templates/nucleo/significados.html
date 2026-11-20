@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block contenido %}
+{% include "nucleo/_pestanas_campanas.html" %}
+<p class="suave">Cada campaña tiene su propio flujo de respuestas. Aquí defines qué significa cada valor que llegó y si cuenta como respuesta positiva, negativa o neutral. Los gráficos y el informe usan esta configuración.</p>
+{% if not empresas %}
+  <div class="aviso">Todavía no hay campañas.</div>
+{% else %}
+<form method="get" class="tarjeta">
+  <div class="campos">
+    <div style="flex:0 1 240px">
+      <label for="s-empresa">Empresa</label>
+      <select id="s-empresa" name="empresa" data-auto>{% for e in empresas %}<option {% if e == empresa %}selected{% endif %}>{{ e }}</option>{% endfor %}</select>
+    </div>
+    {% if campanas %}
+    <div style="flex:1 1 360px">
+      <label for="s-campana">Campaña</label>
+      <select id="s-campana" name="campana" data-auto>{% for c in campanas %}<option value="{{ c.difusion }}" {% if c.difusion == campana %}selected{% endif %}>{{ c.difusion }} ({{ c.respuestas }} respuestas)</option>{% endfor %}</select>
+    </div>
+    {% endif %}
+  </div>
+</form>
+
+{% if not campanas %}
+  <div class="aviso">Esta empresa todavía no tiene respuestas de clientes.</div>
+{% else %}
+  {% if configurada %}<div class="aviso exito">Esta campaña ya tiene su configuración guardada.</div>
+  {% else %}<div class="aviso">Se muestra la sugerencia automática. Revísala, corrige lo necesario y guarda.</div>{% endif %}
+  <p class="suave">Ejemplo: si en esta campaña <strong>Opción 1</strong> es <em>Sin señal</em>, escribe <em>Sin señal</em> en Significado y elige <strong>Negativa</strong>. En las calificaciones solo se usa el Sentido.</p>
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="empresa" value="{{ empresa }}"><input type="hidden" name="campana" value="{{ campana }}">
+    <div class="tabla-caja alta">
+      <table class="tabla" aria-label="Significado de respuestas">
+        <thead><tr><th>Valor que llegó</th><th class="num">Clientes</th><th>Significado</th><th>Sentido</th></tr></thead>
+        <tbody>
+        {% for f in filas %}
+          <tr>
+            <td>{{ f.Valor }}<input type="hidden" name="valor" value="{{ f.Valor }}"></td>
+            <td class="num">{{ f.Clientes }}</td>
+            <td><input type="text" name="sig_{{ f.i }}" value="{{ f.Significado }}" aria-label="Significado de {{ f.Valor }}"></td>
+            <td><select name="sen_{{ f.i }}" aria-label="Sentido de {{ f.Valor }}">{% for s in sentidos %}<option {% if s == f.Sentido %}selected{% endif %}>{{ s }}</option>{% endfor %}</select></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="acciones">
+      <button class="boton primario" type="submit" name="accion" value="guardar">Guardar significados</button>
+      {% if configurada %}<button class="boton" type="submit" name="accion" value="restablecer">Volver a la sugerencia automática</button>{% endif %}
+    </div>
+  </form>
+{% endif %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,11 @@
+.venv
+.git
+data
+respaldos
+staticfiles
+legado_streamlit
+muestras_s1
+**/__pycache__
+.pytest_cache
+.env
+*.md

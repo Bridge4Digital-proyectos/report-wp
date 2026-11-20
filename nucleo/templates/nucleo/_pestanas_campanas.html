@@ -1,0 +1,9 @@
+<div class="encabezado">
+  <span class="rotulo">Configuración</span>
+  <h1>Datos de tus <em>campañas</em></h1>
+  <p class="suave">Categoría de Meta, quién la solicitó y qué significa cada respuesta de sus clientes.</p>
+</div>
+<nav class="pestanas" aria-label="Secciones de campañas">
+  <a href="{% url 'campanas' %}?empresa={{ empresa|urlencode }}" class="{% if pestana == 'datos' %}activa{% endif %}">Datos de campaña</a>
+  <a href="{% url 'significados' %}?empresa={{ empresa|urlencode }}" class="{% if pestana == 'significados' %}activa{% endif %}">Significado de respuestas</a>
+</nav>

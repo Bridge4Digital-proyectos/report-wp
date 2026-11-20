@@ -1,0 +1,52 @@
+{# Vista completa de UNA campaña: datos generales, envío, errores, detalle y su encuesta. #}
+<div id="campana" class="pila" style="margin-top:24px">
+  <div class="tarjeta cabecera-campana">
+    <div>
+      <h2>{{ c_nombre }}</h2>
+      <div class="suave">
+        <strong>Empresa:</strong> {{ c_empresa }} · <strong>Categoría:</strong> {{ c_info.categoria }} ·
+        <strong>Solicitado por:</strong> {{ c_info.solicitado_por|default:"—" }} ·
+        <strong>Fecha de solicitud:</strong> {{ c_info.fecha_solicitud|date:"Y-m-d"|default:"—" }} ·
+        <strong>Primer envío:</strong> {{ c_info.primer_envio|date:"Y-m-d H:i" }} ·
+        <strong>Lote:</strong> {{ c_info.mensajes_lote }} mensajes ·
+        <strong>Pruebas:</strong> {{ c_info.pruebas }} ({{ c_info.mensajes_prueba }} mensajes)
+      </div>
+    </div>
+    <a class="boton" href="{{ c_url_significados }}" title="Define qué significa cada respuesta de esta campaña y si es positiva o negativa.">Configurar significados</a>
+  </div>
+
+  {% with kpis=c_kpis %}{% include "nucleo/_kpis.html" %}{% endwith %}
+
+  {% include "nucleo/_indicadores.html" with ind=c_ind alcance="campana" %}
+
+  <div class="grilla-2">
+    {% for g in c_envio %}{% include "nucleo/_tarjeta.html" %}{% endfor %}
+  </div>
+  {% with g=c_errores %}{% include "nucleo/_tarjeta.html" %}{% endwith %}
+
+  <section>
+    <h3>Detalle por lote y prueba</h3>
+    {% with t=c_detalle alt="Detalle por lote y prueba" %}{% include "nucleo/_tabla.html" %}{% endwith %}
+  </section>
+
+  {% if c_con_respuestas %}
+  <section id="panel-respuestas" data-url="{{ c_url_respondieron }}">
+    <h2>Respuestas de clientes</h2>
+    {% if not c_hay_respuestas %}
+      <div class="aviso">Ningún cliente respondió en esta campaña.</div>
+    {% else %}
+      <div class="grilla-2">
+        {% for g in c_resp_pares %}{% include "nucleo/_tarjeta.html" %}{% endfor %}
+      </div>
+      <div class="pila">
+        {% for g in c_resp_solas %}{% include "nucleo/_tarjeta.html" %}{% endfor %}
+      </div>
+      <h3 style="margin-top:20px">Clientes que respondieron así</h3>
+      <div id="respondieron-ayuda" class="aviso">Haz clic en una barra de los gráficos de arriba para ver qué clientes respondieron así. Puedes elegir varias barras; un segundo clic en la misma barra la quita.</div>
+      <div id="respondieron" aria-live="polite"></div>
+    {% endif %}
+  </section>
+  {% else %}
+  <div class="aviso">Este informe no incluye la información de las respuestas de los clientes.</div>
+  {% endif %}
+</div>

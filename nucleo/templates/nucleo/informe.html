@@ -1,0 +1,76 @@
+{% extends "base.html" %}{% load static %}
+{% block cabeza %}<script src="{% static 'nucleo/plotly.min.js' %}" defer></script>{% endblock %}
+{% block contenido %}
+{% include "nucleo/_pestanas_reportes.html" with pestana_reportes="informe" %}
+
+{% if not empresas %}
+  <div class="aviso">Todavía no hay reportes cargados.</div>
+{% else %}
+<form method="get">
+  {% include "nucleo/_filtros.html" %}
+  {% if vacio %}
+    <div class="aviso advertencia">Ningún mensaje coincide con los filtros.</div>
+  {% else %}
+  <div class="tarjeta" style="margin-top:12px">
+    <h3>Campañas del informe</h3>
+    <p class="suave">Con UNA campaña el informe trae sus gráficos y su encuesta. Con varias, una tabla de respuestas por campaña (cada campaña tiene su propia encuesta, así que no se mezclan en un gráfico).</p>
+    <div class="chequeos" style="flex-direction:column">
+      {% for o in opciones %}
+        <label><input type="checkbox" name="c" value="{{ o.difusion }}" {% if o.difusion in elegidas %}checked{% endif %}> {{ o.difusion }} <span class="suave">({{ o.mensajes }} mensajes)</span></label>
+      {% endfor %}
+    </div>
+    <h3 style="margin-top:16px">Secciones</h3>
+    <div class="chequeos">
+      {% for s in secciones_todas %}<label><input type="checkbox" name="s" value="{{ s }}" {% if s in secciones %}checked{% endif %}> {{ s }}</label>{% endfor %}
+    </div>
+    <div style="margin-top:16px">
+      <label class="interruptor">
+        <input type="checkbox" name="s" value="Respuestas de clientes" {% if con_respuestas %}checked{% endif %}>
+        <span class="pista" aria-hidden="true"></span>
+        <span>Incluir las respuestas de los clientes
+          <small>Encuesta, clasificación de respuestas y lista de quién respondió, en pantalla, Excel y PDF.</small></span>
+      </label>
+    </div>
+    <div class="acciones"><button class="boton primario" type="submit">Armar informe</button></div>
+  </div>
+  {% endif %}
+</form>
+
+{% if not vacio %}
+  {% if not elegidas %}
+    <div class="aviso">Elige una o más campañas para armar el informe.</div>
+    <h2>Campañas disponibles</h2>
+    {% with t=disponibles alt="Campañas" alta=True %}{% include "nucleo/_tabla.html" %}{% endwith %}
+  {% else %}
+    <div class="acciones">
+      <a class="boton primario" href="{{ url_excel }}" data-espera="Preparando Excel…">Descargar Excel</a>
+      <a class="boton" href="{{ url_pdf }}" data-espera="Preparando PDF…">Descargar PDF</a>
+    </div>
+    <p class="suave">{% for k, v in filtros_txt %}<strong>{{ k }}:</strong> {{ v }}{% if not forloop.last %} · {% endif %}{% endfor %}
+      · {% if una %}Excel: Resumen, Gráficos y Quiénes respondieron.{% else %}Excel: Resumen, Respuestas por campaña y Quiénes respondieron.{% endif %}</p>
+
+    {% for g in generales %}
+      <h2>{{ g.nombre }}</h2>
+      {% with t=g.tabla alt=g.nombre %}{% include "nucleo/_tabla.html" %}{% endwith %}
+    {% endfor %}
+
+    {% if una %}
+      {% include "nucleo/_campana.html" %}
+    {% elif por_campana %}
+      <h2>Respuestas por campaña</h2>
+      <p class="suave">Una tabla por campaña: cada una tiene su propia encuesta. Para ver gráficos, elige una sola campaña.</p>
+      <div class="pila">
+      {% for b in por_campana %}
+        <section class="tarjeta">
+          <h3>{{ b.campana }}</h3>
+          <p class="suave">{{ b.empresa }} · {{ b.mensajes }} mensajes · {{ b.respondieron }} respondieron</p>
+          {% if b.t_respuestas is not None %}{% with t=b.t_respuestas vacio="Sin respuestas de clientes." %}{% include "nucleo/_tabla.html" %}{% endwith %}{% endif %}
+          {% if b.t_errores and b.t_errores.filas %}<h3 style="margin-top:12px">Errores</h3>{% with t=b.t_errores %}{% include "nucleo/_tabla.html" %}{% endwith %}{% endif %}
+        </section>
+      {% endfor %}
+      </div>
+    {% endif %}
+  {% endif %}
+{% endif %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,33 @@
+# Claves (la plantilla .env.ejemplo sí se sube)
+.env
+.env.*
+!.env.ejemplo
+
+# Datos reales y respaldos: nunca al repositorio
+data/
+respaldos/
+*.sqlite3
+*.db
+*.dump
+*.sql.gz
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Django
+staticfiles/
+media/
+
+# Sistema y editores
+Thumbs.db
+desktop.ini
+.DS_Store
+.vscode/
+.idea/
+*.log

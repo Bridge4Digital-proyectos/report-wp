@@ -1,0 +1,6 @@
+<p class="suave">{{ total }} cliente(s) · {{ partes|join:" · " }}. Las selecciones de distintos gráficos se combinan.</p>
+<div class="acciones">
+  <a class="boton chico" href="{{ csv }}">Descargar esta lista (CSV)</a>
+  <button class="boton chico" type="button" data-quitar>Quitar selección</button>
+</div>
+{% with alta=True alt="Clientes que respondieron así" vacio="Ningún cliente respondió así." %}{% include "nucleo/_tabla.html" %}{% endwith %}

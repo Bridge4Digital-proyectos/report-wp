@@ -1,0 +1,35 @@
+{% extends "base.html" %}{% load humanize %}
+{% block contenido %}
+<div class="encabezado">
+  <span class="rotulo">Configuración</span>
+  <h1>Tus <em>empresas</em></h1>
+  <p class="suave">Crea empresas antes de cargar sus reportes o corrige sus nombres. Al renombrar, sus campañas, informes y significados siguen con ella.</p>
+</div>
+<form method="post" class="tarjeta">
+  {% csrf_token %}
+  <div class="campos">
+    <div style="flex:1 1 280px"><label for="e-nombre">Nueva empresa</label><input id="e-nombre" type="text" name="nombre" placeholder="Nombre de la empresa"></div>
+    <div style="flex:0 0 auto"><button class="boton primario" type="submit" name="accion" value="crear">Crear empresa</button></div>
+  </div>
+</form>
+<h2>Empresas registradas</h2>
+<form method="post">
+  {% csrf_token %}
+  <div class="tabla-caja">
+    <table class="tabla" aria-label="Empresas">
+      <thead><tr><th>Nombre</th><th class="num">Envíos</th><th class="num">Mensajes</th><th>Último envío</th><th>Costos</th></tr></thead>
+      <tbody>
+      {% for e in filas %}
+        <tr>
+          <td><input type="text" name="nombre_{{ e.id }}" value="{{ e.nombre }}" aria-label="Nombre de {{ e.nombre }}" required></td>
+          <td class="num">{{ e.envios|intcomma }}</td><td class="num">{{ e.mensajes|intcomma }}</td>
+          <td>{{ e.ultimo_envio|date:"Y-m-d H:i"|default:"—" }}</td>
+          <td><a class="boton chico" href="{% url 'tarifas' %}?empresa={{ e.nombre|urlencode }}">Tarifas</a></td>
+        </tr>
+      {% empty %}<tr><td colspan="5">Todavía no hay empresas.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if filas %}<div class="acciones"><button class="boton primario" type="submit" name="accion" value="renombrar">Guardar nombres</button></div>{% endif %}
+</form>
+{% endblock %}

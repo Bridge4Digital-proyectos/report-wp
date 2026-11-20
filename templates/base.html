@@ -1,0 +1,51 @@
+{% load static %}<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ titulo|default:"Reportes" }} · Reportes de difusiones</title>
+  <link rel="icon" type="image/png" href="{% static 'nucleo/marca/icono.png' %}">
+  <link rel="apple-touch-icon" href="{% static 'nucleo/marca/icono_180.png' %}">
+  <link rel="stylesheet" href="{% static 'nucleo/flatpickr/flatpickr.min.css' %}">
+  <link rel="stylesheet" href="{% static 'nucleo/app.css' %}">
+  {% block cabeza %}{% endblock %}
+</head>
+<body>
+  {% block pagina %}
+  {% if user.is_authenticated %}
+  <header class="barra">
+    <a class="marca" href="{% url 'dashboard' %}" aria-label="Bridge4 Digital · Reportes de difusiones">
+      <img src="{% static 'nucleo/marca/logo_horizontal.png' %}" alt="Bridge4 Digital" width="154" height="24">
+      <span>Reportes</span>
+    </a>
+    <nav class="menu" aria-label="Secciones">
+      {% for item in menu %}
+        <a href="{% url item.url %}" {% if request.resolver_match.view_name in item.activos %}class="activo" aria-current="page"{% endif %}>{{ item.texto }}</a>
+      {% endfor %}
+      {% if user.is_staff %}<a href="{% url 'admin:index' %}">Admin</a>{% endif %}
+    </nav>
+    <div class="usuario">
+      <span class="suave">{{ user.get_username }}</span>
+      <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="boton chico" type="submit">Salir</button></form>
+    </div>
+  </header>
+  {% endif %}
+  <main class="contenido">
+    {% if messages %}
+      <div class="mensajes" role="status">
+        {% for m in messages %}<div class="aviso {{ m.tags }}">{{ m }}</div>{% endfor %}
+      </div>
+    {% endif %}
+    {% block contenido %}{% endblock %}
+  </main>
+  <footer class="pie">
+    <img src="{% static 'nucleo/marca/logo_horizontal_bicolor.png' %}" alt="Bridge4 Digital" width="128" height="20">
+    <span>Reportes de difusiones por WhatsApp</span>
+  </footer>
+  {% endblock %}
+  {% block scripts %}{% endblock %}
+  <script src="{% static 'nucleo/flatpickr/flatpickr.min.js' %}"></script>
+  <script src="{% static 'nucleo/flatpickr/es.js' %}"></script>
+  <script src="{% static 'nucleo/app.js' %}"></script>
+</body>
+</html>

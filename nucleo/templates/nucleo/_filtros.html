@@ -1,0 +1,52 @@
+{# Va dentro de un <form method="get">. Una empresa y una plataforma siempre; el resto, opcional. #}
+<div class="tarjeta filtros">
+  <div class="campos">
+    <div>
+      <label for="f-empresa">Empresa</label>
+      <select id="f-empresa" name="empresa" data-auto>
+        {% for e in empresas %}<option value="{{ e }}" {% if e == empresa %}selected{% endif %}>{{ e }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="f-plataforma">Plataforma</label>
+      <select id="f-plataforma" name="plataforma" data-auto {% if plataformas|length < 2 %}disabled{% endif %}>
+        {% for p in plataformas %}<option value="{{ p }}" {% if p == plataforma %}selected{% endif %}>{{ p }}</option>{% endfor %}
+      </select>
+      {% if plataformas|length < 2 %}<input type="hidden" name="plataforma" value="{{ plataforma }}">{% endif %}
+    </div>
+    <div style="flex:2 1 280px">
+      <label for="f-rango">Fecha de envío</label>
+      <input id="f-rango" type="text" data-rango data-desde="f-desde" data-hasta="f-hasta"
+             data-min="{{ fecha_min }}" data-max="{{ fecha_max }}" placeholder="Todas las fechas" autocomplete="off">
+      <input type="hidden" id="f-desde" name="desde" value="{{ desde }}">
+      <input type="hidden" id="f-hasta" name="hasta" value="{{ hasta }}">
+    </div>
+  </div>
+  <details class="desplegable" {% if filtros_extra %}open{% endif %}>
+    <summary>Más filtros{% if filtros_extra %} ({{ filtros_extra }}){% endif %}</summary>
+    <div class="grupo-filtro">
+      <label>Mes</label>
+      <div class="chequeos">
+        {% for m in opciones_mes %}<label><input type="checkbox" name="mes" value="{{ m }}" {% if m in meses %}checked{% endif %}> {{ m }}</label>{% empty %}<span class="suave">—</span>{% endfor %}
+      </div>
+    </div>
+    <div class="grupo-filtro">
+      <label>Categoría Meta</label>
+      <div class="chequeos">
+        {% for c in opciones_categoria %}<label><input type="checkbox" name="categoria" value="{{ c }}" {% if c in categorias %}checked{% endif %}> {{ c }}</label>{% endfor %}
+      </div>
+    </div>
+    {% if solicitantes %}
+    <div class="grupo-filtro">
+      <label>Solicitado por</label>
+      <div class="chequeos">
+        {% for s in solicitantes %}<label><input type="checkbox" name="solicitado" value="{{ s }}" {% if s in quienes %}checked{% endif %}> {{ s }}</label>{% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </details>
+  <div class="acciones">
+    <button class="boton primario" type="submit">Aplicar filtros</button>
+    <a class="boton" href="{{ request.path }}?empresa={{ empresa|urlencode }}&plataforma={{ plataforma|urlencode }}">Quitar filtros</a>
+  </div>
+</div>

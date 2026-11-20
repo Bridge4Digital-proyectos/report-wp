@@ -1,0 +1,37 @@
+{% extends "base.html" %}{% load humanize %}
+{% block contenido %}
+<div class="encabezado">
+  <span class="rotulo">Registro</span>
+  <h1>Historial de <em>cargas</em></h1>
+  <p class="suave">Cada reporte cargado o sincronizado, con cuántos mensajes nuevos y actualizados trajo.</p>
+</div>
+{% include "nucleo/_kpis.html" with kpis=metricas %}
+<form method="get" class="tarjeta">
+  <label>Mes de carga</label>
+  <div class="chequeos">{% for m in opciones_mes %}<label><input type="checkbox" name="mes" value="{{ m }}" {% if m in meses %}checked{% endif %}> {{ m }}</label>{% empty %}<span class="suave">—</span>{% endfor %}</div>
+  <div class="acciones"><button class="boton" type="submit">Aplicar</button></div>
+</form>
+<div class="tabla-caja alta" style="margin-top:12px">
+  <table class="tabla" aria-label="Historial de cargas">
+    <thead><tr><th>Fecha de carga</th><th>Empresa</th><th>Plataforma</th><th>Origen</th><th>Archivo</th><th class="num">Nuevos</th><th class="num">Actualizados</th><th class="num">Sin cambios</th><th>Usuario</th></tr></thead>
+    <tbody>
+    {% for c in filas %}
+      <tr><td>{{ c.fecha_carga|date:"Y-m-d H:i" }}</td><td>{{ c.empresa }}</td><td>{{ c.plataforma }}</td><td>{{ c.get_origen_display }}</td>
+        <td>{{ c.archivo|default:"—" }}</td><td class="num">{{ c.filas_nuevas|intcomma }}</td><td class="num">{{ c.filas_actualizadas|intcomma }}</td>
+        <td class="num">{{ c.filas_duplicadas|intcomma }}</td><td>{{ c.usuario|default:"—" }}</td></tr>
+    {% empty %}<tr><td colspan="9">Todavía no hay cargas.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<details class="tarjeta zona-peligro desplegable" style="margin-top:24px">
+  <summary>Zona de peligro: borrar todos los datos</summary>
+  <p>Esto borra <strong>todas</strong> las campañas, mensajes, significados y el historial de cargas. Las empresas con cuenta de Connectly y sus cuentas se conservan. Antes de borrar se guarda un respaldo completo en la carpeta de respaldos.</p>
+  <form method="post" data-confirmar="¿Seguro que quieres borrar todos los datos? Se guardará un respaldo antes.">
+    {% csrf_token %}
+    <label for="h-confirmar">Escribe BORRAR para confirmar</label>
+    <div class="campos"><div style="flex:0 1 220px"><input id="h-confirmar" type="text" name="confirmar" autocomplete="off"></div>
+      <div style="flex:0 0 auto"><button class="boton peligro" type="submit">Borrar todos los datos</button></div></div>
+  </form>
+</details>
+{% endblock %}

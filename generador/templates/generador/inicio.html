@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block contenido %}
+{% include "nucleo/_pestanas_reportes.html" with pestana_reportes="html" %}
+
+<div class="grilla-2">
+  <section class="tarjeta" aria-labelledby="g-base">
+    <h3 id="g-base">Desde una campaña guardada</h3>
+    {% if not empresas %}
+      <div class="aviso">Todavía no hay campañas guardadas.</div>
+    {% else %}
+    <form method="get">
+      <div class="campos">
+        <div>
+          <label for="g-empresa">Empresa</label>
+          <select id="g-empresa" name="empresa" data-auto>{% for e in empresas %}<option {% if e == empresa %}selected{% endif %}>{{ e }}</option>{% endfor %}</select>
+        </div>
+        <div>
+          <label for="g-plataforma">Plataforma</label>
+          <select id="g-plataforma" name="plataforma" data-auto>{% for p in plataformas %}<option {% if p == plataforma %}selected{% endif %}>{{ p }}</option>{% endfor %}</select>
+        </div>
+      </div>
+    </form>
+    <form method="get" action="{% url 'generador:reporte' %}" target="_blank" style="margin-top:12px">
+      <input type="hidden" name="origen" value="base"><input type="hidden" name="empresa" value="{{ empresa }}"><input type="hidden" name="plataforma" value="{{ plataforma }}">
+      <label for="g-campana">Campaña</label>
+      <select id="g-campana" name="campana" required style="width:100%">
+        {% for c in campanas %}<option value="{{ c.difusion }}">{{ c.difusion }} · {{ c.inicio|date:"d/m/Y" }} · {{ c.mensajes }} mensajes</option>{% endfor %}
+      </select>
+      <div style="margin-top:14px">
+        <input type="hidden" name="opciones" value="1">
+        <label class="interruptor">
+          <input type="checkbox" name="respuestas" value="1" checked>
+          <span class="pista" aria-hidden="true"></span>
+          <span>Incluir las respuestas de los clientes
+            <small>Clasificación, encuesta y texto de cada respuesta.</small></span>
+        </label>
+      </div>
+      <div class="acciones">
+        <button class="boton primario" type="submit">Ver reporte</button>
+        <button class="boton" type="submit" name="descargar" value="1" formtarget="_self" data-espera="Generando…">Descargar HTML</button>
+      </div>
+    </form>
+    {% endif %}
+  </section>
+
+  <section class="tarjeta" id="archivo" aria-labelledby="g-archivo">
+    <h3 id="g-archivo">Desde un archivo</h3>
+    <p class="suave">CSV de difusiones de Connectly (en el reporte se muestra como Cocco). El archivo no se guarda en la base: solo se usa para el reporte.</p>
+    {% if not archivo %}
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="campos">
+        <div style="flex:2 1 260px"><label for="g-file">Archivo</label><input id="g-file" type="file" name="archivo" accept=".csv,.xlsx,.xls" required></div>
+        <div>
+          <label for="g-empresa-archivo">Empresa (para el encabezado y los significados)</label>
+          <select id="g-empresa-archivo" name="empresa_archivo"><option value="">(sin empresa)</option>{% for e in todas_empresas %}<option>{{ e }}</option>{% endfor %}</select>
+        </div>
+      </div>
+      <div class="acciones"><button class="boton primario" type="submit" data-espera="Leyendo archivo…">Subir archivo</button></div>
+    </form>
+    {% else %}
+      <div class="aviso exito"><strong>{{ archivo.nombre }}</strong> · {{ archivo.plataforma }} · {{ archivo.mensajes }} mensajes{% if archivo.empresa %} · {{ archivo.empresa }}{% endif %}</div>
+      <form method="get" action="{% url 'generador:reporte' %}" target="_blank">
+        <input type="hidden" name="origen" value="archivo">
+        <label for="g-campana-archivo">Campaña del archivo</label>
+        <select id="g-campana-archivo" name="campana" required style="width:100%">
+          {% for c in archivo.campanas %}<option value="{{ c.difusion }}">{{ c.difusion }} · {{ c.inicio|date:"d/m/Y" }} · {{ c.mensajes }} mensajes</option>{% endfor %}
+        </select>
+        <div style="margin-top:14px">
+          <input type="hidden" name="opciones" value="1">
+          <label class="interruptor">
+            <input type="checkbox" name="respuestas" value="1" checked>
+            <span class="pista" aria-hidden="true"></span>
+            <span>Incluir las respuestas de los clientes
+              <small>Clasificación, encuesta y texto de cada respuesta.</small></span>
+          </label>
+        </div>
+        <div class="acciones">
+          <button class="boton primario" type="submit">Ver reporte</button>
+          <button class="boton" type="submit" name="descargar" value="1" formtarget="_self" data-espera="Generando…">Descargar HTML</button>
+        </div>
+      </form>
+      <form method="post" action="{% url 'generador:quitar_archivo' %}">{% csrf_token %}<button class="boton chico" type="submit">Usar otro archivo</button></form>
+    {% endif %}
+  </section>
+</div>
+
+<section class="tarjeta">
+  <h3>Qué trae el reporte</h3>
+  <ul class="suave" style="margin:.25rem 0 0; padding-left:1.1rem">
+    <li><strong>Resumen:</strong> total de contactos, mensajes enviados, entregados, leídos, fallidos y rechazados.</li>
+    <li><strong>Efectividad de gestión:</strong> mensajes enviados sobre los mensajes de la base.</li>
+    <li><strong>Rechazadas:</strong> mensajes que WhatsApp/Meta no aceptó y sus principales motivos (y los fallidos, aparte).</li>
+    <li><strong>Respuesta del cliente</strong> (opcional): clasificación, sentido, opciones elegidas y calificación de la encuesta.</li>
+    <li><strong>Horarios:</strong> horario de entrega y mapa de calor de cuándo leen los clientes.</li>
+    <li><strong>Indicadores clave:</strong> efectividad de gestión, tasas de entrega, lectura y respuesta, clics y tiempos.</li>
+    <li><strong>Calidad de la base:</strong> números sin WhatsApp, bloqueos de Meta, bajas y repetidos (descargables).</li>
+    <li><strong>Detalle por línea:</strong> número, estado de recepción, de lectura y respuesta, con buscador, filtros y descarga CSV.</li>
+  </ul>
+</section>
+{% endblock %}

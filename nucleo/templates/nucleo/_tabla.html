@@ -1,0 +1,16 @@
+{% if t.filas %}
+<div class="tabla-caja{% if alta %} alta{% endif %}">
+  <table class="tabla"{% if alt %} aria-label="{{ alt }}"{% endif %}>
+    <thead><tr>{% for col, num in t.columnas %}<th scope="col" class="{% if num %}num{% endif %}">{{ col }}</th>{% endfor %}</tr></thead>
+    <tbody>
+    {% for f in t.filas %}
+      <tr{% if f.url %} data-url="{{ f.url }}"{% endif %}{% if f.activa %} class="activa" aria-selected="true"{% endif %}>
+        {% for texto, num in f.celdas %}<td class="{% if num %}num{% elif texto|length > 60 %}ancha{% endif %}">{{ texto }}</td>{% endfor %}
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="aviso">{{ vacio|default:"Sin datos." }}</div>
+{% endif %}

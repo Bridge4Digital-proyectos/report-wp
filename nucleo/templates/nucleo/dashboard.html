@@ -1,0 +1,42 @@
+{% extends "base.html" %}{% load static %}
+{% block cabeza %}<script src="{% static 'nucleo/plotly.min.js' %}" defer></script>{% endblock %}
+{% block contenido %}
+<div class="encabezado">
+  <span class="rotulo">{% if empresa %}{{ empresa }} · {{ plataforma }}{% else %}Dashboard{% endif %}</span>
+  <h1>Resultados de tus <em>difusiones</em></h1>
+  <p class="suave">Elige una campaña en el resumen para ver su embudo, sus envíos y las respuestas de sus clientes.</p>
+</div>
+
+{% if sin_datos %}
+  <div class="aviso">Todavía no hay reportes cargados. Sincroniza <a href="{% url 'connectly:inicio' %}">Connectly</a> o sube un CSV a mano.</div>
+{% else %}
+  <form method="get">{% include "nucleo/_filtros.html" %}</form>
+
+  {% if vacio %}
+    <div class="aviso advertencia">Ningún mensaje coincide con los filtros.</div>
+  {% else %}
+    {% include "nucleo/_kpis.html" %}
+
+    {% include "nucleo/_indicadores.html" with ind=g_ind alcance="general" %}
+
+    <div class="grilla-2">
+      {% with g=dona %}{% include "nucleo/_tarjeta.html" %}{% endwith %}
+      <section class="tarjeta">
+        <h3>UTILITY y MARKETING en números</h3>
+        {% with t=por_categoria alt="Por categoría" %}{% include "nucleo/_tabla.html" %}{% endwith %}
+        <p class="explicacion">UTILITY: mensajes de servicio (avisos, cobranza, encuestas). MARKETING: promociones (incluye las de «Marketing Messages Lite» de Meta). Corrige la categoría de una campaña en <a href="{% url 'campanas' %}">Campañas</a>.</p>
+      </section>
+    </div>
+
+    <h2>Resumen por campaña</h2>
+    <p class="suave">Cada fila es una campaña completa: suma su lote y sus pruebas. <strong>Haz clic en una campaña</strong> para ver sus gráficos y su encuesta (cada campaña tiene la suya).</p>
+    {% with t=resumen alt="Resumen por campaña" alta=True %}{% include "nucleo/_tabla.html" %}{% endwith %}
+
+    {% if c_nombre %}
+      {% include "nucleo/_campana.html" %}
+    {% else %}
+      <div class="aviso">Elige una campaña en la tabla de arriba para ver sus gráficos, su detalle por lote y prueba y las respuestas de sus clientes.</div>
+    {% endif %}
+  {% endif %}
+{% endif %}
+{% endblock %}

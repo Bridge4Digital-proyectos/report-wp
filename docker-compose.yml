@@ -1,0 +1,53 @@
+# App de reportes en este equipo: web (Django) + base PostgreSQL + programador (sincroniza Connectly cada día).
+# Uso: copiar .env.ejemplo a .env, completarlo y ejecutar iniciar.bat (o: docker compose up -d --build).
+
+x-app: &app
+  build: .
+  image: reportes-difusiones:latest
+  env_file: .env
+  environment:
+    DATABASE_URL: postgres://reportes:${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD en .env}@db:5432/reportes
+    CARPETA_RESPALDOS: /app/respaldos
+  volumes:
+    - ./respaldos:/app/respaldos  # respaldos visibles desde Windows
+    - ./data:/app/data            # base de la app anterior (para importarla) y archivos subidos
+  depends_on:
+    db:
+      condition: service_healthy
+  restart: unless-stopped
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: reportes
+      POSTGRES_USER: reportes
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD en .env}
+    volumes:
+      - datos_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reportes -d reportes"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  web:
+    <<: *app
+    environment:
+      DATABASE_URL: postgres://reportes:${POSTGRES_PASSWORD}@db:5432/reportes
+      CARPETA_RESPALDOS: /app/respaldos
+      MIGRAR: "1"
+    ports:
+      # Solo este equipo. Para abrirla desde otras PCs de la red: PUERTO=8010 y agregar la IP en ALLOWED_HOSTS.
+      - "${PUERTO:-127.0.0.1:8010}:8000"
+
+  programador:
+    <<: *app
+    command: ["python", "manage.py", "programador"]
+    depends_on:
+      web:
+        condition: service_started
+
+volumes:
+  datos_pg:

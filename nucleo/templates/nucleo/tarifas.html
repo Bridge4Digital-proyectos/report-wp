@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block contenido %}
+<div class="encabezado">
+  <span class="rotulo">Configuración · {{ empresa }}</span>
+  <h1>Precios de <em>{{ empresa }}</em></h1>
+  <p class="suave">Lo que Bridge4 cobra a esta empresa por cada mensaje entregado, según su categoría de Meta. En el Dashboard se muestra como <strong>ingreso</strong> de Bridge4; en los reportes que recibe la empresa (HTML, Excel y PDF), como su <strong>costo</strong>. Deja vacía una categoría que no uses.</p>
+</div>
+<form method="get" class="tarjeta">
+  <div class="campos"><div style="flex:0 1 320px">
+    <label for="t-empresa">Empresa</label>
+    <select id="t-empresa" name="empresa" data-auto>{% for e in empresas %}<option {% if e.pk == empresa.pk %}selected{% endif %}>{{ e.nombre }}</option>{% endfor %}</select>
+  </div></div>
+</form>
+<form method="post" class="tarjeta" style="margin-top:16px">
+  {% csrf_token %}
+  <input type="hidden" name="empresa" value="{{ empresa.nombre }}">
+  <div class="campos" style="margin-bottom:14px">
+    <div style="flex:0 1 200px">
+      <label for="t-moneda">Moneda</label>
+      <select id="t-moneda" name="moneda">{% for v, t in monedas %}<option value="{{ v }}" {% if v == moneda %}selected{% endif %}>{{ t }}</option>{% endfor %}</select>
+    </div>
+  </div>
+  <div class="tabla-caja">
+    <table class="tabla" aria-label="Tarifas por categoría">
+      <thead><tr><th>Categoría Meta</th><th>Precio por mensaje entregado (lo que cobramos)</th><th>Última actualización</th></tr></thead>
+      <tbody>
+      {% for f in filas %}
+        <tr><td>{{ f.categoria }}</td>
+          <td><input type="text" inputmode="decimal" name="precio_{{ f.categoria }}" value="{{ f.precio }}" placeholder="Ej.: 0,0125" aria-label="Precio {{ f.categoria }}"></td>
+          <td>{{ f.actualizado|date:"Y-m-d H:i"|default:"—" }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p class="suave" style="margin-top:12px">Los montos se calculan sobre los mensajes <strong>entregados</strong> de cada categoría.</p>
+  <div class="acciones">
+    <button class="boton primario" type="submit">Guardar precios</button>
+    <a class="boton" href="{% url 'empresas' %}">Volver a Empresas</a>
+  </div>
+</form>
+{% endblock %}
